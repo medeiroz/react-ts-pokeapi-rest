@@ -1,10 +1,15 @@
+import { useQuery } from "@tanstack/react-query";
 import { Modal, Select, TextInput } from "flowbite-react"
 import { ModalBody } from "flowbite-react/lib/esm/components/Modal/ModalBody";
 import React, { useState } from "react";
+import { getPokemonList } from "../../api/pokeApi/getPokemonList";
 import { PokemonCard } from "../PokemonCard";
 import { PokemonDetails } from "../PokemonDetails";
 
 export const PokemonBoard = () => {
+
+  const { data, isError, isLoading } = useQuery(['pokemonList'], () => getPokemonList())
+
 
   const totalFound = 1154
 
@@ -13,20 +18,15 @@ export const PokemonBoard = () => {
     { name: 'Wood' },
   ]
 
-  const [ showDetail, setShowDetail ] = useState<boolean>(true);
+  const [ showDetail, setShowDetail ] = useState<boolean>(false);
 
   const onClose = () => {
     setShowDetail(false)
   }
 
-  const onOpenDetails = (id: number) => {
+  const onOpenDetails = (name: string) => {
     setShowDetail(true)
   }
-
-  const pokemons = [
-    {id: 2, name: 'Ivysaur', image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/2.svg'}
-  ]
-
 
   const image = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/2.svg'
   const name = 'Ivysaur'
@@ -124,14 +124,13 @@ export const PokemonBoard = () => {
         <div className="w-full p-10">
           <div className="w-full grid grid-cols-1 gap-1">
             {
-              pokemons.map((pokemon) => {
+              data?.results?.map((pokemon) => {
                 return <PokemonCard
-                  key={pokemon.id}
-                  id={pokemon.id}
+                  key={pokemon.name}
                   name={pokemon.name}
-                  image={pokemon.image}
-                  onClick={() => onOpenDetails(pokemon.id)
-                }/>
+                  url={pokemon.url}
+                  onClick={onOpenDetails}
+                />
               })
             }
           </div>

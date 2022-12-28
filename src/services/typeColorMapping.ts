@@ -1,12 +1,24 @@
 import { camelCase } from 'lodash'
 
 const typeColorTranscriber: { [key: string]: string } = {
-  grass: 'green',
-  flying: 'blue',
-  poison: 'purple',
   bug: 'green',
+  dark: '',
+  dragon: '',
+  electric: '',
+  fairy: '',
+  fighting: '',
   fire: 'orange',
+  flying: 'blue',
+  ghost: '',
+  grass: 'green',
+  ground: '',
   ice: 'cyan',
+  normal: '',
+  poison: 'purple',
+  psychic: '',
+  rock: '',
+  steel: '',
+  water: '',
 }
 
 

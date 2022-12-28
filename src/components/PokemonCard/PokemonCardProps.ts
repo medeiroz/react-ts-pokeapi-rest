@@ -1,6 +1,5 @@
 export interface PokemonCardProps {
-  id: number,
   name: string,
-  image: string,
-  onClick(id: number): void
+  url: string,
+  onClick(name: string): void
 }
