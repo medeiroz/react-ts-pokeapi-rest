@@ -8,7 +8,7 @@ import { PokemonDetails } from "../PokemonDetails";
 
 export const PokemonBoard = () => {
 
-  const { data, isError, isLoading } = useQuery(['pokemonList'], () => getPokemonList())
+  const { data, isError, isLoading } = useQuery(['pokemonList'], () => getPokemonList(1, 100))
 
 
   const totalFound = 1154
@@ -121,8 +121,8 @@ export const PokemonBoard = () => {
             }
           </Select>
         </div>
-        <div className="w-full p-10">
-          <div className="w-full grid grid-cols-1 gap-1">
+        <div className="w-full px-10">
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {
               data?.results?.map((pokemon) => {
                 return <PokemonCard

@@ -8,5 +8,6 @@ export interface PokemonResponseInterface {
         front_default: string,
       }
     }
-  }
+  },
+  types: Array<{type: {name: string}}>
 }
