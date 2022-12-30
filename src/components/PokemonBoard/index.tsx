@@ -1,25 +1,26 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button, Modal, TextInput } from "flowbite-react"
 import { ModalBody } from "flowbite-react/lib/esm/components/Modal/ModalBody";
-import { kebabCase } from "lodash";
-import React, { useEffect, useState } from "react";
+import { debounce, kebabCase, toNumber } from "lodash";
+import { useEffect, useState } from "react";
 import { getPokemonList } from "../../api/pokeApi/getPokemonList";
+import { PokemonListResponseInterface } from "../../api/pokeApi/getPokemonList/PokemonListResponseInterface";
 import { PokemonCard } from "../PokemonCard";
 import { PokemonDetails } from "../PokemonDetails";
 
-
-
 export const PokemonBoard = () => {
+  const [showDetail, setShowDetail] = useState<boolean>(false);
   const [search, setSearch] = useState<string|null>(null)
   const [selectedPokemon, setSelectedPokemon] = useState<string|null>(null)
+  const [perPage, setPerPage] = useState<number>(12);
 
   const {
     data,
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ['pokemonList'],
-    queryFn: ({ pageParam = 1 }) => getPokemonList(pageParam),
+    queryKey: ['pokemonList', perPage],
+    queryFn: ({ pageParam = 1 }) => getPokemonList(pageParam, perPage),
     getNextPageParam: (lastPage) => lastPage.nextPage,
     cacheTime: Infinity,
     refetchOnWindowFocus: false,
@@ -41,22 +42,53 @@ export const PokemonBoard = () => {
     return () => document.removeEventListener('scroll', handleScroll)
   }, [fetchNextPage, hasNextPage])
 
-  const totalFound = data?.pages?.[0].count || 0
+  useEffect(() => {
+    if (search) {
+      setPerPage(1500)
+    }
+  }, [search])
 
-  const [ showDetail, setShowDetail ] = useState<boolean>(false);
+  const totalFound = data?.pages?.[0].count || 0
+  const pokemonList: PokemonListResponseInterface['results'] = [];
+
+  data?.pages?.forEach(page => {
+    pokemonList.push(...page.results)
+  })
+
+  const pokemonListFiltered = pokemonList.filter((pokemon) => {
+    if (!search) {
+      return true;
+    }
+
+    const kebabName = kebabCase(pokemon.name)
+    const kebabSearch = kebabCase(search)
+
+    if (kebabName.includes(kebabSearch)) {
+      return true;
+    }
+
+    const splitedUrl = pokemon?.url?.split('/');
+    const id = pokemon?.id || splitedUrl && splitedUrl[splitedUrl.length - 2]
+
+    return (toNumber(kebabSearch) == id)
+  })
 
   const onClose = () => {
     setShowDetail(false)
-  }
-
-  const onSearch = () => {
-    onOpenDetails(kebabCase(search || ''))
   }
 
   const onOpenDetails = (name: string) => {
     setSelectedPokemon(name)
     setShowDetail(true)
   }
+
+  async function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+    debounceSearch(event.target.value);
+  }
+
+  const debounceSearch = debounce(criteria => {
+    setSearch(criteria)
+  }, 300)
 
   return (
     <div>
@@ -81,11 +113,8 @@ export const PokemonBoard = () => {
             <TextInput
               type="search"
               placeholder="Search name or code"
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleChange}
             />
-            <Button gradientMonochrome="purple" onClick={onSearch}>
-              Search
-            </Button>
           </div>
         </div>
         <div className="flex flex-row justify-center text-cente mt-10 mb-10 gap-3">
@@ -94,17 +123,13 @@ export const PokemonBoard = () => {
         </div>
         <div className="w-full px-10">
           <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-            {data?.pages?.map((page, i) => (
-              <React.Fragment key={i}>
-                {page?.results.map((pokemon) => (
-                  <PokemonCard
-                    key={pokemon.name}
-                    name={pokemon.name}
-                    url={pokemon?.url}
-                    onClick={() => onOpenDetails(pokemon.name)}
-                  />
-                ))}
-              </React.Fragment>
+            {pokemonListFiltered.map((pokemon) => (
+              <PokemonCard
+                key={pokemon.name}
+                name={pokemon.name}
+                url={pokemon?.url}
+                onClick={() => onOpenDetails(pokemon.name)}
+              />
             ))}
           </div>
         </div>
