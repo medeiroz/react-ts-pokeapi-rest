@@ -4,13 +4,25 @@ import { getColorByType } from "../../services/typeColorMapping";
 import { PokemonCardProps } from "./PokemonCardProps"
 
 export const PokemonCard = (props: PokemonCardProps) => {
-  const splitedUrl = props.url?.split('/');
-  const id = splitedUrl[splitedUrl.length-2]
+  const splitedUrl = props?.url?.split('/');
+  const id = props?.id || splitedUrl && splitedUrl[splitedUrl.length-2]
   const code = '#' + id?.toString().padStart(3, '0')
 
-  const { data, isError, isLoading } = useQuery(['pokemon', props.name], () => getPokemon(props.name))
+  const { data, isLoading, isFetched } = useQuery({
+      queryKey: ['pokemon', props.name],
+      queryFn: () => getPokemon(props.name),
+      cacheTime: Infinity,
+      refetchOnWindowFocus: false,
+      enabled: !!props.name
+    })
 
-  const color = getColorByType(data?.types?.[0]?.type?.name || '');
+  const color = isFetched && data
+    ? getColorByType(data?.types?.[0]?.type?.name || '')
+    : '';
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
 
   return (
     <div
@@ -19,10 +31,10 @@ export const PokemonCard = (props: PokemonCardProps) => {
     >
       <div className={`flex justify-center items-center aspect-square rounded-full bg-${color}-200 p-8`}>
         {
-          isLoading === false &&
+          isFetched && data &&
           <img
             className="max-w-[80%] h-auto align-middle"
-            src={data?.sprites?.other?.dream_world?.front_default}
+            src={data.sprites.other.dream_world.front_default || data.sprites.front_default}
             alt={props.name}
           />
         }

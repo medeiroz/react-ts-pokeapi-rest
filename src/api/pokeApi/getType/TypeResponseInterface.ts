@@ -1,5 +1,5 @@
-import { PastDamageRelationInterface } from "./PastDamageRelationInterface";
+import { DamageRelationInterface } from "./DamageRelationInterface";
 
 export interface TypeResponseInterface {
-  past_damage_relations: PastDamageRelationInterface[],
+  damage_relations: DamageRelationInterface,
 }
